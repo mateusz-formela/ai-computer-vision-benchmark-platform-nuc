@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <title>{{ title }}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+
+        .value{
+            font-size:1.35rem;
+            font-weight:bold;
+        }
+
+        .card{
+            border-radius:14px;
+        }
+
+        .metric{
+            margin-bottom:20px;
+        }
+
+	.card,
+.card-header,
+.card-body{
+
+    color:#F8FAFC;
+
+}
+
+.card-header h3,
+.card-body h3,
+.card-body h5,
+.card-body strong,
+.card-body label{
+
+    color:#F8FAFC;
+
+}
+
+small{
+
+    color:#CBD5E1;
+
+}
+
+	.card-header{
+
+            background:#1E293B;
+
+            border-bottom:1px solid #334155;
+
+        }
+
+        .card-body{
+
+            background:#0F172A;
+
+        }
+
+        .form-select,
+        .form-control{
+
+            background:#1E293B;
+
+            color:#F8FAFC;
+
+            border:1px solid #334155;
+
+        }
+
+        .form-select{
+
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M4 6l4 4 4-4z'/%3E%3C/svg%3E");
+
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 14px;
+
+            padding-right: 40px;
+
+        }
+
+.form-select:disabled,
+.form-control:disabled{
+
+    background:#1E293B !important;
+    color:#94A3B8 !important;
+    border:1px solid #334155 !important;
+    opacity:1;
+
+}
+
+	.form-select option{
+
+    background:#1E293B;
+
+    color:#F8FAFC;
+
+}
+
+        .form-select:focus,
+        .form-control:focus{
+
+            background:#1E293B;
+
+            color:white;
+
+        }
+
+        .btn{
+
+            border-radius:10px;
+
+        }
+
+    </style>
+
+</head>
+
+<body class="bg-dark text-light">
+
+<div class="container-fluid px-5 py-4">
+
+<div class="d-flex justify-content-end align-items-center mb-3">
+
+    <span class="text-light me-3">
+        👤 {{ username }}
+    </span>
+
+    <a href="/logout"
+       class="btn btn-outline-light btn-sm">
+
+        🚪 Logout
+
+    </a>
+
+</div>
+
+<div class="card mb-4 shadow-lg border-0"
+     style="background:linear-gradient(90deg,#0F172A,#1E3A8A);">
+
+    <div class="card-body d-flex justify-content-between align-items-center">
+
+        <div class="d-flex align-items-center gap-4">
+
+    <img
+        src="/static/oneclick.png"
+        alt="OneClickIT"
+        style="height:150px; width:auto;">
+
+    <div>
+
+        <h3 class="text-white fw-bold mb-1">
+            AI Benchmark Platform
+        </h3>
+
+        <div class="text-light opacity-75">
+            Real-Time AI Performance Benchmark Suite
+        </div>
+
+    </div>
+
+</div>
+
+    </div>
+
+</div>
+
+<div class="card mb-4 shadow border-secondary"
+     style="background:#0F172A;">
+
+<div class="card-header d-flex justify-content-between align-items-center">
+
+    <h3 class="mb-0">
+        Run Benchmark
+    </h3>
+
+    <span
+        id="headerStatus"
+        class="badge bg-secondary fs-6">
+
+        ⚪ IDLE
+
+    </span>
+
+</div>
+
+<div class="card-body">
+
+        <form id="benchmarkForm" method="post" action="/benchmark">
+
+            <div class="row">
+
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Select Device</label>
+                    <select class="form-select"
+		    style="width:320px;"
+                            name="device"
+                            {% if status.running %}disabled{% endif %}>
+
+	                <option value="" selected>Select device...</option>
+
+                        {% for id, device in devices.items() %}
+                        <option value="{{ device.tag }}"
+    {% if status.device == device.tag %}selected{% endif %}>
+    {{ device.name }}
+</option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Select Model</label>
+                    <select class="form-select"
+		    style="width:320px;"
+                            name="model"
+                            {% if status.running %}disabled{% endif %}>
+
+		        <option value="" selected>Select model...</option>
+
+                        {% for model in models %}
+			<option value="{{ model }}"
+    			{% if status.selected_model == model.stem %}selected{% endif %}>
+    			{{ model.name }}
+			</option>
+			{% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Select Video</label>
+                    <select class="form-select"
+		    style="width:320px;"
+                            name="video"
+                            {% if status.running %}disabled{% endif %}>
+
+			    <option value="" selected>Select video...</option>
+
+                        <optgroup label="──────── Live Cameras ────────">
+
+<option value="__ESP32__"
+{% if status.video == "ESP32-CAM (Live)" %}selected{% endif %}>
+📷 ESP32-CAM (Live)
+</option>
+
+<option value="__SHIBUYA__"
+{% if status.video == "__SHIBUYA__" %}selected{% endif %}>
+🚆 Shibuya Crossing (Live)
+</option>
+
+<option value="__TIMES__"
+{% if status.video == "__TIMES__" %}selected{% endif %}>
+🇺🇸 Times Square (Live)
+</option>
+
+<option value="__TOKYO__"
+{% if status.video == "__TOKYO__" %}selected{% endif %}>
+🇯🇵 Tokyo Crossing (Live)
+</option>
+
+<option value="__VENICE__"
+{% if status.video == "__VENICE__" %}selected{% endif %}>
+🇮🇹 Venice (Live)
+</option>
+
+<option value="__GDANSK__"
+{% if status.video == "__GDANSK__" %}selected{% endif %}>
+⚓ Gdańsk (Live)
+</option>
+
+<option value="__DAVAO__"
+{% if status.video == "__DAVAO__" %}selected{% endif %}>
+🇵🇭 Davao City (Live)
+</option>
+
+</optgroup>
+
+<optgroup label="──────── Local Videos ────────">
+
+{% for video in videos %}
+
+{% if video not in ["__ESP32__", "__SHIBUYA__", "__TIMES__", "__TOKYO__", "__VENICE__","__GDANSK__","__DAVAO__"] %}
+
+<option value="{{ video }}"
+{% if status.video == video.stem %}selected{% endif %}>
+{{ video.name }}
+</option>
+
+{% endif %}
+
+{% endfor %}
+
+</optgroup>
+</select>
+
+                    </div>
+
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Select Image Size</label>
+                    <select class="form-select"
+		    style="width:320px;"
+                            name="image_size"
+                            {% if status.running %}disabled{% endif %}>
+
+		        <option value="" selected>Select image size...</option>
+
+                        {% for size in image_sizes %}
+			<option value="{{ size }}"
+    			{% if status.image_size == size %}selected{% endif %}>
+    			{{ size }}
+			</option>
+			{% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Select Confidence</label>
+                    <select class="form-select"
+		    style="width:320px;"
+                            name="confidence"
+                            {% if status.running %}disabled{% endif %}>
+
+		        <option value="" selected>Select confidence...</option>
+
+                        {% for conf in confidence_values %}
+			<option value="{{ conf }}"
+    			{% if status.confidence == conf %}selected{% endif %}>
+    			{{ conf }}
+			</option>
+			{% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-4">
+
+                    <div class="form-check mb-2">
+
+                        <input
+    class="form-check-input"
+    type="checkbox"
+    id="preview"
+    name="preview"
+    {% if status.preview %}checked{% endif %}
+    {% if status.running %}disabled{% endif %}>
+
+                        <label class="form-check-label" for="preview">
+                            Live Preview
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <hr>
+
+            <div class="d-flex gap-2">
+
+                <button
+                    id="startBenchmark"
+                    type="submit"
+                    class="btn btn-success">
+
+                    ▶ Start
+
+                </button>
+
+                <button
+                    type="button"
+                    id="stopBenchmark"
+                    class="btn btn-danger"
+                    disabled>
+
+                    ■ Stop
+
+                </button>
+
+		<button
+    type="button"
+    id="openGrafana"
+    class="btn btn-primary"
+    disabled>
+
+    📊 Open Grafana
+
+</button>
+
+            </div>
+
+        </form>
+
+</div>
+
+</div>
+
+<div id="statusCard" class="card mb-4 {% if status.running %}border-success{% else %}border-secondary{% endif %}">
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h3 class="mb-3">
+                    Run Information
+                </h3>
+
+                <div class="row">
+
+                    <div class="col-md-3">
+                        <strong>Run ID</strong>
+                </div>
+
+                <div class="col-md-9">
+                     <span id="run_id">
+                        {{ status.run_id if status.run_id else "-" }}
+                     </span>
+                </div>
+
+                <div class="col-md-3 mt-2">
+                    <strong>Device</strong>
+                </div>
+
+                <div class="col-md-9 mt-2">
+                    <span id="run_device">-</span>
+                </div>
+
+                <div class="col-md-3 mt-2">
+                    <strong>Model</strong>
+                </div>
+
+                <div class="col-md-9 mt-2">
+                    <span id="run_model">-</span>
+                </div>
+
+                <div class="col-md-3 mt-2">
+                    <strong>Video</strong>
+                </div>
+
+                <div class="col-md-9 mt-2">
+                    <span id="run_video">-</span>
+                </div>
+
+<div class="col-md-3 mt-2">
+    <strong>Image Size</strong>
+</div>
+
+<div class="col-md-9 mt-2">
+    <span id="run_image_size">-</span>
+</div>
+
+<div class="col-md-3 mt-2">
+    <strong>Confidence</strong>
+</div>
+
+<div class="col-md-9 mt-2">
+    <span id="run_confidence">-</span>
+</div>
+
+<div class="col-md-3 mt-2">
+    <strong>Preview</strong>
+</div>
+
+<div class="col-md-9 mt-2">
+    <span id="run_preview">-</span>
+</div>
+
+            </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<div class="card mb-4 shadow border-secondary"
+     style="background:#0F172A;">
+
+<div class="card-header">
+<h3>Dostępne urządzenia</h3>
+</div>
+
+<div class="card-body">
+
+<div class="row">
+
+{% for id, device in devices.items() %}
+
+<div class="col-lg-6">
+
+<div class="card bg-dark text-light mb-3">
+
+<div class="card-body">
+
+<h5>{{ device.name }}</h5>
+
+{% if device.tag=="nuc" %}
+
+<p id="nucStatus" class="text-success">
+🟢 Online
+</p>
+
+{% elif device.tag=="joule" %}
+
+<p id="jouleStatus" class="text-warning">
+⏳ Checking...
+</p>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+</div>
+
+<div class="card mb-4 shadow border-secondary"
+     style="background:#0F172A;">
+
+    <div class="card-header">
+
+        <h3>
+            Live Dashboard
+        </h3>
+
+    </div>
+
+    <div class="card-body">
+
+        <h5 class="mb-3">🚀 Performance</h5>
+
+        <div class="row">
+
+            <div class="col-md-3 metric">
+                Start
+                <div class="value" id="start_time">-</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                End
+                <div class="value" id="end_time">-</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                Duration
+                <div class="value" id="duration">0 s</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                Frame
+                <div class="value" id="frame">0</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                FPS
+                <div class="value" id="fps">0</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                Inference
+                <div class="value" id="inference">0 ms</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                Frames Processed
+                <div class="value" id="frames_processed">0</div>
+            </div>
+
+        </div>
+
+        <hr>
+
+        <h5 class="mb-3 mt-4">💻 System</h5>
+
+        <div class="row">
+
+            <div class="col-md-3 metric">
+                CPU
+                <div class="value" id="cpu">0 %</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                RAM
+                <div class="value" id="ram">0 %</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                Temperature
+                <div class="value" id="temperature">0 °C</div>
+            </div>
+
+        </div>
+
+        <hr>
+
+        <h5 class="mb-3 mt-4">👁 Detection</h5>
+
+        <div class="row">
+
+            <div class="col-md-3 metric">
+                Detections
+                <div class="value" id="detections">0</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                Confidence
+                <div class="value" id="confidence">0</div>
+            </div>
+
+        </div>
+
+<div class="mt-4">
+
+    <h6 class="mb-3">
+        Detected Objects
+    </h6>
+
+    <div
+        id="detectedObjects"
+        class="small"
+        style="
+            max-height:260px;
+            overflow-y:auto;
+        ">
+
+        <span class="text-secondary">
+            No detections
+        </span>
+
+    </div>
+
+</div>
+	
+	<hr>
+
+<h5 class="mb-3 mt-4">📹 Live Preview</h5>
+
+<div class="d-flex justify-content-center allign-items-center">
+
+    <img
+        id="previewImage"
+        src=""
+        class="rounded border"
+        style="
+            display:none;
+            max-width:100%;
+            max-height:500px;
+            width:auto;
+            height:auto;
+        ">
+
+    <div
+        id="previewPlaceholder"
+        class="text-center text-secondary py-5">
+
+        <div
+            id="previewSpinner"
+            class="spinner-border text-primary mb-3"
+            role="status">
+        </div>
+
+        <div id="previewText">
+            Waiting for live preview...
+        </div>
+
+    </div>
+
+</div>
+
+        <hr>
+
+        <h5 class="mb-3 mt-4">📊 Summary</h5>
+
+        <div class="row">
+
+            <div class="col-md-3 metric">
+                Average FPS
+                <div class="value" id="avg_fps">0</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                Average Inference
+                <div class="value" id="avg_inference">0 ms</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                Average CPU
+                <div class="value" id="avg_cpu">0 %</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                Average RAM
+                <div class="value" id="avg_ram">0 %</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                Average Temperature
+                <div class="value" id="avg_temperature">0 °C</div>
+            </div>
+
+            <div class="col-md-3 metric">
+                Average Confidence
+                <div class="value" id="avg_confidence">0</div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card mb-4 shadow border-secondary" style="background:#0F172A;">
+
+    <div class="card-header">
+        <h3>Run History</h3>
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-3 mb-4">
+
+    <div class="col-md-3">
+        <label class="form-label">Device</label>
+
+        <select id="historyDeviceFilter" class="form-select">
+            <option value="">All Devices</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Model</label>
+
+        <select id="historyModelFilter" class="form-select">
+            <option value="">All Models</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+    <label class="form-label">Video</label>
+
+    <select id="historyVideoFilter" class="form-select">
+        <option value="">All Videos</option>
+    </select>
+</div>
+
+<div class="col-md-3">
+    <label class="form-label">Image Size</label>
+
+    <select id="historyImageSizeFilter" class="form-select">
+        <option value="">All Image Sizes</option>
+    </select>
+</div>
+
+<div class="col-md-3">
+    <label class="form-label">Confidence</label>
+
+    <select id="historyConfidenceFilter" class="form-select">
+        <option value="">All Confidence</option>
+    </select>
+</div>
+
+<div class="col-md-3">
+    <label class="form-label">Preview</label>
+
+    <select id="historyPreviewFilter" class="form-select">
+        <option value="">All Preview</option>
+    </select>
+</div>
+
+<div class="col-md-3">
+    <label class="form-label">Status</label>
+
+    <select id="historyStatusFilter" class="form-select">
+        <option value="">All Status</option>
+    </select>
+</div>
+
+        <div class="mb-3">
+
+            <button
+                id="deleteSelectedRuns"
+                class="btn btn-danger"
+                disabled>
+
+                🗑 Delete Selected
+
+            </button>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-dark table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+
+    <th style="width:40px">
+
+        <input
+            type="checkbox"
+            id="selectAllRuns"
+            onclick="toggleAllRuns(this)">
+
+    </th>
+
+    			<th>Start</th>
+			<th>End</th>
+			<th>Device</th>
+			<th>Status</th>
+    			<th>Run ID</th>
+			<th>Model</th>
+			<th>Video</th>
+			<th>Image Size</th>
+			<th>Confidence</th>
+			<th>Preview</th>
+			<th>FPS</th>
+    			<th>Duration</th>
+			<th>Grafana</th>
+		     </tr>
+
+                </thead>
+
+                <tbody id="historyTable">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+    <script>
+    let allHistory = [];
+
+function setFormEnabled(enabled){
+
+    document
+        .querySelectorAll("#benchmarkForm select, #benchmarkForm input, #benchmarkForm button[type='submit']")
+        .forEach(el => {
+            el.disabled = !enabled;
+        });
+
+}
+
+async function updateStatus(){
+
+    try{
+
+        const response = await fetch("/status");
+        const s = await response.json();
+	const objects = document.getElementById("detectedObjects");
+
+        if (objects) {
+
+    	    objects.innerHTML = "";
+
+            const classes = s.classes || {};
+
+            const sorted = Object.entries(classes)
+                .sort((a, b) => b[1] - a[1]);
+
+            if (sorted.length === 0) {
+
+                objects.innerHTML =
+                    "<span class='text-secondary'>No detections</span>";
+
+            } else {
+
+                const icons = {
+                    person: "👤",
+            	    bicycle: "🚲",
+            	    car: "🚗",
+            	    motorcycle: "🏍️",
+            	    airplane: "✈️",
+            	    bus: "🚌",
+            	    train: "🚆",
+            	    truck: "🚚",
+            	    boat: "⛵",
+            	    "traffic light": "🚦",
+            	    "fire hydrant": "🧯",
+            	    "stop sign": "🛑",
+            	    bench: "🪑",
+            	    bird: "🐦",
+            	    cat: "🐱",
+            	    dog: "🐶",
+            	    horse: "🐴",
+            	    sheep: "🐑",
+            	    cow: "🐄"
+                };
+
+                for (const [name, count] of sorted) {
+
+                    const row = document.createElement("div");
+
+                    row.className =
+                        "d-flex justify-content-between border-bottom py-1";
+
+                    row.innerHTML =
+                `        <span>${icons[name] || "📦"} ${name}</span><strong>${count}</strong>`;
+
+                    objects.appendChild(row);
+
+                }
+
+            }
+
+        }
+        const videoSelect = document.querySelector('select[name="video"]');
+
+        for (const o of videoSelect.options) {
+            console.log(o.value, "=>", o.text);
+        }
+        console.log("STATUS VIDEO =", s.video);
+        console.log("SELECT =", document.querySelector('select[name="video"]').value);
+        console.log(document.querySelector('select[name="video"]').outerHTML);
+	const wasRunning = window.lastRunning ?? false;
+	window.lastRunning = s.running;
+        if (!wasRunning && s.running) {
+            previewLoaded = false;
+        }
+        const card = document.getElementById("statusCard");
+        updatePreview(
+            s.device,
+            s.running,
+            s.preview
+        );
+
+if (s.running) {
+
+    card.classList.remove("border-secondary");
+    card.classList.add("border-success");
+
+    setFormEnabled(false);
+
+} else {
+
+    card.classList.remove("border-success");
+    card.classList.add("border-secondary");
+
+    setFormEnabled(true);
+
+    const objects = document.getElementById("detectedObjects");
+
+    if (objects) {
+
+        objects.innerHTML =
+            "<span class='text-secondary'>No detections</span>";
+
+    }
+
+}
+
+        document.getElementById("headerStatus").textContent =
+            s.running ? "🟢 RUNNING" : "⚪ IDLE";
+
+        document.getElementById("headerStatus").className =
+            s.running
+                ? "badge bg-success fs-6"
+                : "badge bg-secondary fs-6";
+
+        document.getElementById("run_id").textContent =
+            s.run_id ?? "-";
+
+	const deviceNames = {
+    nuc: "🖥️ Intel NUC",
+    "Intel NUC": "🖥️ Intel NUC",
+    joule: "📟 Intel Joule",
+    "Intel Joule": "📟 Intel Joule"
+};
+
+document.getElementById("run_device").textContent =
+    deviceNames[s.device] ?? s.device ?? "-";
+document.getElementById("nucStatus").innerHTML =
+    "🟢 Online";
+
+const joule = document.getElementById("jouleStatus");
+
+if (s.joule_online) {
+    joule.className = "text-success";
+    joule.innerHTML = "🟢 Online";
+} else {
+    joule.className = "text-warning";
+    joule.innerHTML = "⚪ Offline";
+}
+
+        document.getElementById("run_model").textContent =
+            s.model ?? "-";
+
+        document.getElementById("run_video").textContent =
+            s.video ?? "-";
+
+	document.getElementById("run_image_size").textContent =
+    s.image_size ?? "-";
+
+document.getElementById("run_confidence").textContent =
+    s.confidence === null
+        ? "-"
+        : s.confidence;
+
+document.getElementById("run_preview").textContent =
+    s.preview === null
+        ? "-"
+        : (s.preview ? "Enabled" : "Disabled");
+
+        document.getElementById("start_time").textContent =
+            s.start_time ?? "-";
+
+        document.getElementById("end_time").textContent =
+            s.end_time ?? "-";
+
+        document.getElementById("duration").textContent =
+            Number(s.duration ?? 0).toFixed(2) + " s";
+
+        document.getElementById("frame").textContent =
+            s.frame ?? 0;
+
+        document.getElementById("fps").textContent =
+            Number(s.fps ?? 0).toFixed(2);
+
+        document.getElementById("inference").textContent =
+            Number(s.inference ?? 0).toFixed(2) + " ms";
+
+        document.getElementById("cpu").textContent =
+            Number(s.cpu ?? 0).toFixed(1) + " %";
+
+        document.getElementById("ram").textContent =
+            Number(s.ram ?? 0).toFixed(1) + " %";
+
+        document.getElementById("temperature").textContent =
+    	    Number(s.temp ?? 0).toFixed(1) + " °C";
+
+        document.getElementById("detections").textContent =
+            s.detections ?? 0;
+
+        document.getElementById("confidence").textContent =
+            Number(s.confidence ?? 0).toFixed(2);
+
+        document.getElementById("frames_processed").textContent =
+            s.frames ?? 0;
+
+        document.getElementById("avg_fps").textContent =
+            Number(s.avg_fps ?? 0).toFixed(2);
+
+        document.getElementById("avg_inference").textContent =
+            Number(s.avg_inf ?? 0).toFixed(2) + " ms";
+
+        document.getElementById("avg_cpu").textContent =
+            Number(s.avg_cpu ?? 0).toFixed(1) + " %";
+
+        document.getElementById("avg_ram").textContent =
+            Number(s.avg_ram ?? 0).toFixed(1) + " %";
+
+        document.getElementById("avg_temperature").textContent =
+            Number(s.avg_temp ?? 0).toFixed(1) + " °C";
+
+        document.getElementById("avg_confidence").textContent =
+            Number(s.avg_conf ?? 0).toFixed(2);
+      
+        document.getElementById("startBenchmark").disabled = s.running;
+
+        document.getElementById("stopBenchmark").disabled = !s.running;
+
+        document.getElementById("resetDashboard").disabled = s.running;
+
+	document.getElementById("openGrafana").disabled =
+    s.running ||
+    !s.run_id ||
+    !s.start_time ||
+    !s.end_time;
+    
+    if (wasRunning && !s.running) {
+    await loadHistory();
+}
+
+    }
+
+    catch(e){
+
+        console.log(e);
+
+    }
+
+}
+
+updateStatus();
+
+setInterval(updateStatus,1000);
+loadHistory();
+
+let previewLoaded = false;
+
+let currentStream = "";
+
+function updatePreview(device, running, preview){
+
+    const img = document.getElementById("previewImage");
+    const placeholder = document.getElementById("previewPlaceholder");
+    const spinner = document.getElementById("previewSpinner");
+    const text = document.getElementById("previewText");
+
+    if(!running){
+
+        currentStream = "";
+        previewLoaded = false;
+
+        img.removeAttribute("src");
+        img.style.display = "none";
+
+        placeholder.style.display = "flex";
+        spinner.style.display = "none";
+        text.innerText = "Benchmark not running";
+
+        return;
+    }
+
+    if(!preview){
+
+        currentStream = "";
+        previewLoaded = false;
+
+        img.removeAttribute("src");
+        img.style.display = "none";
+
+        placeholder.style.display = "flex";
+        spinner.style.display = "none";
+        text.innerText = "Preview disabled";
+
+        return;
+    }
+
+    const stream = "/stream/" + device;
+
+    if(currentStream !== stream){
+
+        currentStream = stream;
+        previewLoaded = false;
+
+        img.onload = function(){
+
+            previewLoaded = true;
+
+            img.style.display = "block";
+            placeholder.style.display = "none";
+            spinner.style.display = "none";
+        };
+
+        img.style.display = "none";
+        placeholder.style.display = "flex";
+        spinner.style.display = "block";
+        text.innerText = "Waiting for live preview...";
+
+        img.src = stream + "?t=" + Date.now();
+    }
+}
+// setInterval(loadHistory,5000);
+
+document
+    .getElementById("benchmarkForm")
+    .addEventListener("submit", function (e) {
+
+        const form = e.target;
+
+        if (!form.device.value) {
+            e.preventDefault();
+            alert("Please select a device.");
+            return;
+        }
+
+        if (!form.model.value) {
+            e.preventDefault();
+            alert("Please select a model.");
+            return;
+        }
+
+        if (!form.video.value) {
+            e.preventDefault();
+            alert("Please select a video.");
+            return;
+        }
+
+        if (!form.image_size.value) {
+            e.preventDefault();
+            alert("Please select an image size.");
+            return;
+        }
+
+        if (!form.confidence.value) {
+            e.preventDefault();
+            alert("Please select a confidence value.");
+            return;
+        }
+
+    });
+
+document
+    .getElementById("stopBenchmark")
+    .addEventListener("click", async () => {
+
+        console.log("STOP CLICK");
+
+        await fetch("/stop", {
+            method: "POST"
+        });
+
+        await updateStatus();
+
+    });
+
+document
+    .getElementById("openGrafana")
+    .addEventListener("click", async () => {
+
+        const response = await fetch("/status");
+        const s = await response.json();
+
+        const url =
+    		"https://grafana.oneclickit.pl/d/addt8mb/ai-benchmark-dashboard"
+    		+ "?orgId=1"
+    		+ "&from=" + s.start_ts
+		+ "&to=" + s.end_ts
+    		+ "&timezone=browser"
+		+ "&var-device=" + encodeURIComponent(s.device)
+    		+ "&var-model=" + encodeURIComponent(s.model)
+    		+ "&var-video=" + encodeURIComponent(s.video)
+    		+ "&var-benchmark=" + encodeURIComponent(s.benchmark)
+    		+ "&var-imgsz=" + encodeURIComponent(s.image_size)
+    		+ "&var-confidence=" + encodeURIComponent(s.confidence)
+    		+ "&var-run_id=" + encodeURIComponent(s.run_id);
+
+	alert(url);
+        window.open(url, "_blank");
+
+    });
+
+async function loadHistory() {
+
+    const response = await fetch("/history");
+    allHistory = await response.json();
+
+    populateDeviceFilter();
+    populateModelFilter();
+    populateVideoFilter();
+    populateImageSizeFilter();
+    populateConfidenceFilter();
+    populatePreviewFilter();
+    populateStatusFilter();
+
+    renderHistory(allHistory);
+
+}
+
+function renderHistory(history) {
+
+    const tbody = document.getElementById("historyTable");
+    tbody.innerHTML = "";
+
+    history.forEach(run => {
+
+    let status = "🟢 Finished";
+
+    if (run.status === "stopped") {
+        status = "🟡 Stopped";
+    }
+    else if (run.status === "aborted") {
+        status = "🔴 Aborted";
+    }
+    const deviceNames = {
+    nuc: "🖥️ Intel NUC",
+    "Intel NUC": "🖥️ Intel NUC",
+    joule: "📟 Intel Joule",
+    "Intel Joule": "📟 Intel Joule"
+};
+
+const device = deviceNames[run.device] ?? run.device ?? "-";
+
+    tbody.innerHTML += `
+<tr>
+
+    <td>
+
+    <input
+        type="checkbox"
+        class="runCheckbox"
+        value="${run.run_id}"
+        onchange="updateDeleteButton()">
+
+</td>
+
+<td>${run.start_time ?? "-"}</td>
+<td>${run.end_time ?? "-"}</td>
+<td>${device}</td>
+<td>${status}</td>
+<td>${run.run_id}</td>
+<td>${run.model}</td>
+<td>${run.video}</td>
+<td>${run.imgsz}</td>
+<td>${run.confidence}</td>
+<td>${run.preview ? "Enabled" : "Disabled"}</td>
+<td>${Number(run.avg_fps).toFixed(2)}</td>
+    <td>${Number(run.duration).toFixed(1)} s</td>
+
+<td>
+    <button
+        class="btn btn-sm btn-primary"
+        onclick="openHistoryGrafana(
+            '${run.run_id}',
+            '${run.start_ts}',
+            '${run.end_ts}',
+	    '${run.device}',
+            '${run.model}',
+            '${run.video}',
+            '${run.benchmark}',
+            '${run.imgsz}',
+            '${run.confidence}'
+        )">
+        📊
+    </button>
+</td>
+
+</tr>`;
+
+    });
+
+}
+
+function populateDeviceFilter() {
+
+    const select = document.getElementById("historyDeviceFilter");
+
+    select.innerHTML = '<option value="">All Devices</option>';
+
+    [...new Set(allHistory.map(r => r.device))]
+        .sort()
+        .forEach(device => {
+
+            const deviceName = {
+    nuc: "Intel NUC",
+    joule: "Intel Joule"
+}[device] ?? device;
+
+select.innerHTML +=
+    `<option value="${device}">${deviceName}</option>`;
+
+        });
+
+}
+
+function populateModelFilter() {
+
+    const select = document.getElementById("historyModelFilter");
+
+    select.innerHTML = '<option value="">All Models</option>';
+
+    [...new Set(allHistory.map(r => r.model))]
+        .sort()
+        .forEach(model => {
+
+            select.innerHTML +=
+                `<option value="${model}">${model}</option>`;
+
+        });
+
+}
+
+function populateVideoFilter() {
+
+    const select = document.getElementById("historyVideoFilter");
+
+    select.innerHTML = '<option value="">All Videos</option>';
+
+    [...new Set(allHistory.map(r => r.video))]
+        .sort()
+        .forEach(video => {
+
+            select.innerHTML +=
+                `<option value="${video}">${video}</option>`;
+
+        });
+
+}
+
+function populateImageSizeFilter() {
+
+    const select = document.getElementById("historyImageSizeFilter");
+
+    select.innerHTML = '<option value="">All Image Sizes</option>';
+
+    [...new Set(allHistory.map(r => r.imgsz))]
+        .sort()
+        .forEach(size => {
+
+            select.innerHTML +=
+                `<option value="${size}">${size}</option>`;
+
+        });
+
+}
+
+function populateConfidenceFilter() {
+
+    const select = document.getElementById("historyConfidenceFilter");
+
+    select.innerHTML = '<option value="">All Confidence</option>';
+
+    [...new Set(allHistory.map(r => r.confidence))]
+        .sort((a, b) => Number(a) - Number(b))
+        .forEach(confidence => {
+
+            select.innerHTML +=
+                `<option value="${confidence}">${confidence}</option>`;
+
+        });
+
+}
+
+function populatePreviewFilter() {
+
+    const select = document.getElementById("historyPreviewFilter");
+
+    select.innerHTML =
+        '<option value="">All Preview</option>';
+
+    [...new Set(
+    allHistory
+        .filter(r => r.preview !== null)
+        .map(r => String(r.preview))
+)]
+        .forEach(preview => {
+
+            select.innerHTML +=
+                `<option value="${preview}">
+                    ${preview === "true" ? "Enabled" : "Disabled"}
+                </option>`;
+
+        });
+
+}
+
+function populateStatusFilter() {
+
+    const select = document.getElementById("historyStatusFilter");
+
+    select.innerHTML =
+        '<option value="">All Status</option>';
+
+    [...new Set(allHistory.map(r => r.status))]
+        .sort()
+        .forEach(status => {
+
+            select.innerHTML +=
+                `<option value="${status}">
+                    ${status === "aborted" ? "Aborted" : "Finished"}
+                </option>`;
+
+        });
+
+}
+
+function openHistoryGrafana(
+    runId,
+    startTs,
+    endTs,
+    device,
+    model,
+    video,
+    benchmark,
+    imgsz,
+    confidence
+){
+
+    const url =
+        "https://grafana.oneclickit.pl/d/addt8mb/ai-benchmark-dashboard"
+        + "?orgId=1"
+        + "&from=" + startTs
+        + "&to=" + endTs
+        + "&timezone=browser"
+	+ "&var-device=" + encodeURIComponent(device)
+        + "&var-model=" + encodeURIComponent(model)
+        + "&var-video=" + encodeURIComponent(video)
+        + "&var-benchmark=" + encodeURIComponent(benchmark)
+        + "&var-imgsz=" + encodeURIComponent(imgsz)
+        + "&var-confidence=" + encodeURIComponent(confidence)
+        + "&var-run_id=" + encodeURIComponent(runId);
+    alert(url);
+
+    window.open(url, "_blank");
+
+}
+
+function updateDeleteButton() {
+
+    const anyChecked = document.querySelectorAll(".runCheckbox:checked").length > 0;
+
+    document.getElementById("deleteSelectedRuns").disabled = !anyChecked;
+
+}
+
+function toggleAllRuns(source){
+
+    document
+        .querySelectorAll(".runCheckbox")
+        .forEach(cb => cb.checked = source.checked);
+
+    updateDeleteButton();
+
+}
+
+document
+    .getElementById("deleteSelectedRuns")
+    .addEventListener("click", async () => {
+
+        const runIds = [...document.querySelectorAll(".runCheckbox:checked")]
+            .map(cb => cb.value);
+
+        if (runIds.length === 0) {
+            alert("No runs selected.");
+            return;
+        }
+
+        if (!confirm(`Delete ${runIds.length} selected run(s)?`)) {
+            return;
+        }
+
+        await fetch("/history/delete", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(runIds)
+        });
+
+        loadHistory();
+
+    });
+
+
+
+function applyHistoryFilters() {
+
+    const device =
+        document.getElementById("historyDeviceFilter").value;
+
+    const model =
+        document.getElementById("historyModelFilter").value;
+
+    const video =
+        document.getElementById("historyVideoFilter").value;
+
+    const imageSize =
+        document.getElementById("historyImageSizeFilter").value;
+
+    const confidence =
+        document.getElementById("historyConfidenceFilter").value;
+
+    const preview =
+        document.getElementById("historyPreviewFilter").value;
+
+    const status =
+        document.getElementById("historyStatusFilter").value;
+
+    renderHistory(
+
+        allHistory.filter(run =>
+
+            (device === "" || run.device === device)
+            &&
+            (model === "" || run.model === model)
+            &&
+            (video === "" || run.video === video)
+            &&
+            (imageSize === "" || String(run.imgsz) === String(imageSize))
+            &&
+            (confidence === "" || String(run.confidence) === String(confidence))
+            &&
+            (preview === "" || String(run.preview) === preview)
+            &&
+            (status === "" || run.status === status)
+
+        )
+
+    );
+
+}
+
+[
+    "historyDeviceFilter",
+    "historyModelFilter",
+    "historyVideoFilter",
+    "historyImageSizeFilter",
+    "historyConfidenceFilter",
+    "historyPreviewFilter",
+    "historyStatusFilter",
+].forEach(id => {
+
+    document
+        .getElementById(id)
+        .addEventListener("change", applyHistoryFilters);
+
+});
+
+</script>
+<script>
+// Frontend refactor scaffold.
+// TODO: JS controls:
+// - Running/Idle
+// - Status colors
+// - Form lock/unlock
+// - Dashboard reset
+// - Stop Benchmark support
+</script>
+
+</body>
+</html>

@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+.env
+
+# Models
+*.pt
+*.onnx
+
+# Video data
+*.mp4
+*.avi
+*.mov
+
+# Results / experiments
+runs/
+results/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+
+# Old experiments
+stare/
+
+# Packages
+*.deb
+
+# OS files
+.DS_Store
